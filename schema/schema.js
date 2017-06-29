@@ -30,6 +30,7 @@ const RootQuery = new GraphQLObjectType({
       type: UserType,
       args: { id: { type: GraphQLString } },
       resolve(parentValue, args) { // go to database, look and drag the data
+        // return the promise
         return _.find(users, { id: args.id });
       }
     }
