@@ -1,5 +1,6 @@
 const graphql = require('graphql');
-const _=require('lodash');
+// const _=require('lodash');
+const axios = require('axios');
 
 const {
   GraphQLObjectType,
@@ -8,17 +9,33 @@ const {
   GraphQLSchema // take in an rootquery and return a graphql schema instance
 } = graphql;
 
-const users = [
-  { id: '20', firstName: 'Thai', age: 20 },
-  { id: '42', firstName: 'Damien', age: 21 },
-]
+const CompanyType = new GraphQLObjectType({
+  name: 'Company',
+  fields: {
+    id: { type: GraphQLString },
+    name: { type: GraphQLString },
+    description: { type: GraphQLString }
+  }
+})
 
 const UserType = new GraphQLObjectType({
   name: 'User', // Capital first letter
   fields: {
     id: { type: GraphQLString },
     firstName: { type: GraphQLString },
-    age: { type: GraphQLInt }
+    age: { type: GraphQLInt },
+    company: {
+      type: CompanyType,
+
+      // teach GraphQL to associate from User to company
+      resolve(parentValue, args) {
+        // console.log(parentValue, args);
+// { id: '42', firstName: 'Damien', age: 21, companyId: '2' } {}
+
+        return axios.get(`http://localhost:3000/companies/${parentValue.companyId}`)
+        .then(response => response.data);
+      }
+    }
   }
 });
 
@@ -30,8 +47,12 @@ const RootQuery = new GraphQLObjectType({
       type: UserType,
       args: { id: { type: GraphQLString } },
       resolve(parentValue, args) { // go to database, look and drag the data
+        // return _.find(users, { id: args.id }); users here is
+        // fake
+
         // return the promise
-        return _.find(users, { id: args.id });
+        return axios.get(`http://localhost:3000/users/${args.id}`)
+        .then(response => response.data)
       }
     }
   }
